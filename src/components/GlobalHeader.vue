@@ -6,15 +6,38 @@
         <router-link to="/">
           <div class="title-bar">
             <img class="logo" src="../assets/logo.jpg" alt="logo" />
-            <div class="title"> 雲圖庫 </div>
+            <div class="title"> TuTu Cloud </div>
           </div>
         </router-link>
       </a-col>
       <a-col flex="auto"> <a-menu v-model:selectedKeys="current" mode="horizontal" :items="items"
           @click="doMenuClick" /> </a-col>
+
+      <!-- 用户信息展示 -->
       <a-col flex="100px">
         <div class="user-login-status">
-          <a-button type="primary" href="/user/login">登錄</a-button>
+          <div v-if="loginUserStore.loginUser.id">
+            <div class="dropdown-wrap">
+              <a-dropdown-button @click="handleButtonClick">
+                <a-space>
+                  {{ loginUserStore.loginUser.userName ?? 'Anonymous' }}
+                </a-space>
+                <template #overlay>
+                  <a-menu @click="doLogout">
+                    <a-menu-item key="1">
+                      <LoginOutlined />
+                      Sign out
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown-button>
+            </div>
+            <!-- 用户头像 暂时不用
+            <a-avatar :src="loginUserStore.loginUser.userAvatar" /> -->
+          </div>
+          <div v-else>
+            <a-button type="primary" href="/user/login">Sign in</a-button>
+          </div>
         </div>
       </a-col>
     </a-row>
@@ -22,26 +45,36 @@
 </template>
 <script lang="ts" setup>
 import { h, ref } from 'vue';
-import { HomeOutlined } from '@ant-design/icons-vue';
-import { MenuProps } from 'ant-design-vue';
+import { ApiOutlined, HomeOutlined, LoginOutlined } from '@ant-design/icons-vue';
+import { MenuProps, message } from 'ant-design-vue';
 import { useRouter } from 'vue-router';
+import { useLoginUserStore } from '@/stores/useLoginUserStore';
+import { userLogoutUsingPost } from '@/api/userController';
+const handleButtonClick = (e: Event) => {
+  console.log('click left button', e);
+};
+const handleMenuClick: MenuProps['onClick'] = e => {
+  console.log('click', e);
+};
+
+const loginUserStore = useLoginUserStore();
 
 const items = ref<MenuProps['items']>([
   {
     key: '/',
     icon: () => h(HomeOutlined),
-    label: '主页',
-    title: '主页',
+    label: 'Home',
+    title: 'Home',
   },
   {
     key: 'about',
-    label: '关于',
-    title: '关于',
+    label: 'About',
+    title: 'about',
   },
   {
     key: 'other',
-    label: h('a', { href: 'https://www.google.com/', target: '_blank' }, 'Google一下'),
-    title: 'Google一下',
+    label: h('a', { href: 'https://www.google.com/', target: '_blank' }, 'Google Search'),
+    title: 'Google Search',
   }
 ]);
 
@@ -61,6 +94,24 @@ const doMenuClick = ({ key }: { key: string }) => {
     }
   );
 }
+
+// 用户登出
+const doLogout = async () => {
+  const resp = await userLogoutUsingPost();
+  if (resp.data.code === 0) {
+    loginUserStore.setLoginUser({
+      userName: "Guest",
+    });
+    message.success("logout success!");
+    router.push(
+      {
+        path: "/",
+      }
+    );
+  } else {
+    message.error(`logout failed, ${resp.data.message}`);
+  }
+}
 </script>
 
 <style scoped>
@@ -78,5 +129,10 @@ const doMenuClick = ({ key }: { key: string }) => {
   width: 35px;
   height: 35px;
   margin-right: 10px;
+}
+
+.dropdown-wrap :deep(.ant-dropdown-button) {
+  margin-right: 8px;
+  margin-bottom: 8px;
 }
 </style>

@@ -1,19 +1,20 @@
+import { getLoginUserUsingGet } from "@/api/userController";
 import { defineStore } from "pinia";
 import { ref } from "vue";
-/**
- * 存儲用戶登錄信息狀態
- */
+
 export const useLoginUserStore = defineStore("loginUser", () => {
-  const loginUser = ref<any>({
-    userName: "未登錄",
+  const loginUser = ref<API.LoginUserVO>({
+    userName: "Guest",
   });
 
+  /**
+   * 获取登录用户信息
+   */
   async function fetchLoginUser() {
-    // todo 由于后端还没提供接口，暂时注释
-    // const res = await getCurrentUser();
-    // if (res.data.code === 0 && res.data.data) {
-    //   loginUser.value = res.data.data;
-    // }
+    const resp = await getLoginUserUsingGet();
+    if (resp.data.code === 0 && resp.data.data) {
+      loginUser.value = resp.data.data;
+    }
   }
 
   function setLoginUser(newLoginUser: any) {
@@ -22,4 +23,3 @@ export const useLoginUserStore = defineStore("loginUser", () => {
 
   return { loginUser, setLoginUser, fetchLoginUser };
 });
-
