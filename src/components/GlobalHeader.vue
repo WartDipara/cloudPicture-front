@@ -14,7 +14,7 @@
           @click="doMenuClick" /> </a-col>
 
       <!-- 用户信息展示 -->
-      <a-col flex="100px">
+      <a-col flex="150px">
         <div class="user-login-status">
           <div v-if="loginUserStore.loginUser.id">
             <div class="dropdown-wrap">
@@ -44,8 +44,8 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { h, ref } from 'vue';
-import { ApiOutlined, HomeOutlined, LoginOutlined } from '@ant-design/icons-vue';
+import { computed, h, ref } from 'vue';
+import { HomeOutlined, LoginOutlined } from '@ant-design/icons-vue';
 import { MenuProps, message } from 'ant-design-vue';
 import { useRouter } from 'vue-router';
 import { useLoginUserStore } from '@/stores/useLoginUserStore';
@@ -59,7 +59,7 @@ const handleMenuClick: MenuProps['onClick'] = e => {
 
 const loginUserStore = useLoginUserStore();
 
-const items = ref<MenuProps['items']>([
+const originItems = ref<MenuProps['items']>([
   {
     key: '/',
     icon: () => h(HomeOutlined),
@@ -67,9 +67,9 @@ const items = ref<MenuProps['items']>([
     title: 'Home',
   },
   {
-    key: 'about',
-    label: 'About',
-    title: 'about',
+    key: '/admin/userManage',
+    label: 'UserManage',
+    title: 'UserManage',
   },
   {
     key: 'other',
@@ -77,6 +77,24 @@ const items = ref<MenuProps['items']>([
     title: 'Google Search',
   }
 ]);
+// 过滤导航栏
+const filterMenus = (menus = [] as MenuProps['items']) => {
+  return menus?.filter((menu) => {
+    // Ensure menu.key is a string before using startsWith
+    const keyAsString = String(menu?.key);
+    if (keyAsString.startsWith('/admin')) {
+      const loginUser = loginUserStore.loginUser;
+      if (!loginUser || loginUser.userRole !== "admin") {
+        return false;
+      }
+    }
+    return true;
+  });
+};
+// 展示在导航栏的路由数组
+const items = computed<MenuProps['items']>(() => filterMenus(originItems.value))
+
+
 
 const router = useRouter();
 
