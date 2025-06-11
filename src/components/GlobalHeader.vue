@@ -25,7 +25,7 @@ import { h, ref } from 'vue';
 import { HomeOutlined } from '@ant-design/icons-vue';
 import { MenuProps } from 'ant-design-vue';
 import { useRouter } from 'vue-router';
-const current = ref<string[]>(['mail']);
+
 const items = ref<MenuProps['items']>([
   {
     key: '/',
@@ -46,6 +46,13 @@ const items = ref<MenuProps['items']>([
 ]);
 
 const router = useRouter();
+
+//路由高亮
+const current = ref<string[]>([]);
+router.afterEach((to, from, next) => {
+  current.value = [to.path];
+})
+
 //路由跳轉
 const doMenuClick = ({ key }: { key: string }) => {
   router.push(
